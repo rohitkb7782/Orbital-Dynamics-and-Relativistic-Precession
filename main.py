@@ -414,6 +414,8 @@ epsilon_values = np.logspace(
     20,
 )
 
+fig, ax = plt.subplots(figsize=(8, 5))
+
 for periods in [10, 15, 20, 25]:
     critical_epsilons = []
 
@@ -463,22 +465,37 @@ for periods in [10, 15, 20, 25]:
 
     radius_values = 1 / Vy0_values**2 + 3
 
-    plt.plot(
+    ax.plot(
         radius_values,
         critical_epsilons,
         label=fr"$t_{{max}} = {periods}T$",
     )
 
-plt.axvline(
+ax.axvline(
     6,
     linestyle="--",
     label=r"Theoretical ISCO: $r_c=6$",
 )
 
-plt.xlabel(r"Circular orbit radius $r_c$")
-plt.ylabel(r"Critical fractional perturbation $\epsilon_{\mathrm{crit}}$")
-plt.title("Critical Perturbation for Orbits Near the ISCO")
-plt.legend()
-plt.grid()
-plt.savefig("isco_critical_perturbation.png")
+ax.set(
+    xlabel=r"Circular orbit radius $r_c$",
+    ylabel=r"Critical fractional perturbation $\epsilon_{\mathrm{crit}}$",
+    title="Critical Perturbation for Orbits Near the ISCO",
+)
+
+ax.legend()
+ax.grid()
+
+fig.subplots_adjust(
+    left=0.16,
+    right=0.97,
+    bottom=0.12,
+    top=0.90,
+)
+
+plt.savefig(
+    "isco_critical_perturbation.png",
+    bbox_inches="tight",
+)
+
 plt.show()
