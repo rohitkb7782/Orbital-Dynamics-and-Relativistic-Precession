@@ -38,7 +38,7 @@ $$
 \mathbf{s}=(x,y,v_x,v_y).
 $$
 
-The equations of motion are solved numerically using Euler's Method, RK4, and Velocity Verlet. The mathematical formulation and numerical methods are described in more detail in their own docs:
+The Newtonian and relativistic equations of motion are integrated using Euler's Method, RK4, and Velocity Verlet. The underlying equations and numerical methods are introduced in:
 
 - [Mathematical Model](docs/mathematical_model.md)
 - [Numerical Methods](docs/numerical_methods.md)
