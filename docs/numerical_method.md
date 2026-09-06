@@ -1,3 +1,7 @@
+## Numerical Methods
+
+I compare three numerical integrators: Euler's Method, fourth-order Runge-Kutta (RK4), and Velocity Verlet.
+
 ### Euler's Method
 
 Euler's Method was also used in my previous project, [*Projectile Motion with Quadratic Drag*](https://github.com/rohitkb7782/Projectile-Motion-with-Quadratic-Drag), where its first-order convergence was compared with an analytical solution. It advances the state using the derivative at the current timestep:
