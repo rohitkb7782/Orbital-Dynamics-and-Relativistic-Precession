@@ -527,13 +527,15 @@ Overall, RK4 outperforms Velocity Verlet for the shorter simulations used in the
 
 **Figure 3.** *Relativistic orbital dynamics for weak-field, intermediate-radius, and near-ISCO orbits. Each panel compares outward and inward radial perturbations.*
 
-The first panel shows the weak-field limit, where the relativistic correction is small and the orbit remains close to Newtonian behavior.
+This experiment examines relativistic orbital behavior at three different radii, using both outward ($+\epsilon$) and inward ($-\epsilon$) radial perturbations.
 
-The second panel uses a smaller orbital radius, making the relativistic correction more important. The orbit no longer closes after a single revolution, producing a visible precession of the periapsis.
+In the weak-field case, with $V_{y0}=0.01$ and an orbital radius of approximately $r=104$, relativistic corrections are very small. Both perturbations remain stable and produce closed, Newtonian-like elliptical orbits with little visible precession.
 
-The final panel approaches the ISCO region. Here, the stability of the circular orbit becomes much more sensitive to radial perturbations. Outward and inward perturbations can produce qualitatively different behavior as the orbit approaches the stability boundary.
+At the intermediate radius, using $V_{y0}=0.15$ and $r\approx50$, relativistic effects become more noticeable. Both perturbations remain bounded, but the orbits no longer close after one revolution. Instead, the periapsis gradually shifts, producing the characteristic rosette pattern associated with relativistic precession.
 
-The simulations therefore show how the relativistic correction becomes increasingly important as the orbital radius decreases.
+Near the ISCO, with $V_{y0}=0.6$ and $r\approx6$, the behavior changes significantly. The outward perturbation moves the orbit into the stable region and produces a bounded, precessing trajectory. In contrast, the inward perturbation pushes the particle into the unstable region, causing it to plunge inward toward the central mass.
+
+The ISCO plot also shows a numerical artifact in the inward trajectory. The trajectory is terminated near the origin because the relativistic force becomes extremely large at small $r$. With a fixed timestep, the integrator cannot accurately resolve this steep force gradient, causing the numerical solution to behave incorrectly near $r=0$ rather than smoothly approaching the central singularity.
 
 ### 4. Relativistic Precession Coefficients
 
