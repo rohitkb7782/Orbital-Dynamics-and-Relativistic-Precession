@@ -1,9 +1,9 @@
 ## Mathematical Model
 
-The simulations use normalized units with
+The simulations use normalized units with $GM=c=1$, with the state vector
 
 $$
-GM=1.
+\mathbf{s}=(x,y,v_x,v_y).
 $$
 
 The state vector is
