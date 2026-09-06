@@ -472,13 +472,7 @@ $$
 }.
 $$
 
-The expected scaling is
-
-$$
-\epsilon_r\propto h^p,
-$$
-
-where $p$ is the method's order.
+The expected scaling is $\epsilon_r\propto h^p,$ where $p$ is the method's order.
 
 Long-term stability is measured using the relative energy error,
 
