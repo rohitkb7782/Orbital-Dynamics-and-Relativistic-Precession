@@ -35,7 +35,7 @@ def relativistic_orbit_derivative(position_and_velocity, t, consts):
 
     The effective potential is
 
-        V(r) = -1/r + L²/r³,
+        V(r) = -1/r - L²/r³,
 
     where L is the initial angular momentum. The resulting acceleration is
 
