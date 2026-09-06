@@ -418,7 +418,7 @@ epsilon_values = np.logspace(
 
 fig, ax = plt.subplots(figsize=(8, 5))
 
-for periods in [10, 15, 20, 25]:
+for periods in [10, 20, 30, 40]:
     critical_epsilons = []
 
     for Vy0 in Vy0_values:
@@ -431,8 +431,7 @@ for periods in [10, 15, 20, 25]:
         # Find the smallest perturbation that produces a >10% radial deviation.
         for epsilon in epsilon_values:
             perturbations = np.array([
-                (epsilon, 0, 0, 0),
-                (-epsilon, 0, 0, 0),
+                (-epsilon, 0, 0, 0)
             ])
 
             times = np.arange(
