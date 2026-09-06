@@ -38,7 +38,7 @@ A computational physics project using numerical simulation to study orbital dyna
 
 ## Motivation
 
-Orbital dynamics is a useful system for studying numerical methods and the behavior of dynamical systems. For a Newtonian gravitational orbit, there is a known analytical solution in terms of Keplerian motion, which is useful for comparing numerical solutions with an exact result.
+Orbital dynamics is a useful system for studying numerical methods and the behavior of dynamical systems. For a Newtonian gravitational orbit, there is a known analytical solution in terms of Keplerian motion, which is useful for comparing numerical solutions to an exact result.
 
 I first compare Euler's Method, RK4, and Velocity Verlet using two different orbital shapes: an eccentric orbit and a nearly circular orbit. The analytical Keplerian solution provides a reference for the numerical error. I measure this error as the timestep is changed. I then compare the long-term energy behavior of the different methods over many orbital periods.
 
@@ -248,13 +248,31 @@ and measuring the resulting radial deviation.
 
 ### Relativistic Precession
 
-Since the radial perturbation oscillates as
+The Binet equation
 
 $$
-\delta u\propto\cos(\omega_r\phi),
+u''+u=\frac1{L^2}+3u^2
 $$
 
-one complete radial cycle requires
+is nonlinear because of the $3u^2$ term. In the weak-field limit, $u=1/r$ is small, so the relativistic correction is also small. This suggests treating the relativistic effects as a perturbation of the Newtonian orbit and expanding the resulting precession in powers of the small parameter $1/L^2$. The precession can therefore be written as
+
+$$
+\frac{c_1}{L^2}
++
+\frac{c_2}{L^4}
++
+\mathcal O(L^{-6}),
+$$
+
+where $c_1$ is the leading-order relativistic correction and $c_2$ is the next-to-leading-order correction.
+
+For a circular orbit, the radial frequency is
+
+$$
+\omega_r^2=1-6u_0,
+$$
+
+so one complete radial cycle requires
 
 $$
 \Phi=\frac{2\pi}{\omega_r}
@@ -297,7 +315,7 @@ $$
 \right].
 $$
 
-Using the Taylor expansion
+Since the weak-field limit corresponds to $1/L^2\ll1$, this expression can be expanded as a power series in $1/L^2$:
 
 $$
 (1-x)^{-1/4}=
@@ -306,7 +324,7 @@ $$
 +\cdots,
 $$
 
-with $x=12/L^2$, gives
+with $x=12/L^2$. This gives
 
 $$
 \Delta\phi=
@@ -316,10 +334,10 @@ $$
 +
 \frac{45}{2L^4}
 +\cdots
-\right].
+\right],
 $$
 
-Thus,
+and therefore
 
 $$
 \boxed{
@@ -331,13 +349,15 @@ $$
 }.
 $$
 
+This expansion gives a natural way to test the numerical results: the coefficients of the $1/L^2$ and $1/L^4$ terms can be extracted from the simulations and compared with the theoretical predictions.
+
 Numerically, periapsides are identified when
 
 $$
 v_r=\frac{\mathbf r\cdot\mathbf v}{r}
 $$
 
-crosses from negative to positive. The angular separation between successive periapsides gives the measured precession, which is fitted against $1/L^2$.
+crosses from negative to positive. The angular separation between successive periapsides gives the measured precession, which is then fitted against $1/L^2$.
 
 ## Numerical Methods
 
@@ -539,40 +559,62 @@ The ISCO plot also shows a numerical artifact in the inward trajectory. The traj
 
 ### 4. Relativistic Precession Coefficients
 
-![Relativistic precession](images/relativistic_precession.png?raw=true)
+![Relativistic precession coefficients](images/precession_coefficients.png?raw=true)
 
-**Figure 4.** *Numerical extraction of the leading-order and next-to-leading-order relativistic precession coefficients, together with a comparison between numerical precession and the theoretical expansion.*
+**Figure 4.** *Numerical extraction of the leading-order and next-to-leading-order relativistic precession coefficients.*
 
-The periapsis advance is measured by finding successive periapsides and calculating their angular separation.
-
-The measured precession is plotted against
-
-$$
-\frac{1}{L^2}.
-$$
-
-Multiplying the measured precession by $L^2$ allows the leading-order coefficient to be extracted using a linear fit.
-
-The first fitted coefficient approaches the theoretical value
-
-$$
-6\pi.
-$$
-
-The next-order behavior can then be examined by fitting the remaining dependence and comparing it with the predicted coefficient
-
-$$
-45\pi.
-$$
-
-The final panel compares the numerical results for $\epsilon=0.01$ with the leading-order approximation
+Figure 4 shows how the coefficients in the relativistic precession expansion are extracted numerically. Starting from
 
 $$
 \Delta\phi=
-\frac{6\pi}{L^2}
+\frac{c_1}{L^2}
++
+\frac{c_2}{L^4}
++
+\mathcal O(L^{-6}),
 $$
 
-and the next-to-leading-order approximation
+the equation is multiplied by $L^2$ and written as
+
+$$
+y=c_1+c_2x+O(x^{2}),
+$$
+
+where
+
+$$
+y=\Delta\phi L^2,
+\qquad
+x=\frac1{L^2}.
+$$
+
+A linear fit is then performed using between 3 and 9 of the weakest-field points closest to $x=0$, corresponding to $L\to\infty$. The intercept gives the leading-order coefficient $c_1$, while the slope gives the next-to-leading-order coefficient $c_2$.
+
+The extracted $c_1$ values converge very closely to the theoretical prediction
+
+$$
+c_1=6\pi\approx18.85,
+$$
+
+and remain consistent across the tested eccentricities, $\epsilon=0.01$ to $0.10$. The extraction of $c_2$ is more sensitive to higher-order terms because points farther from the weak-field limit contain larger $\mathcal O(L^{-6})$ contributions. Using fewer points closer to $x=0$ gives values that cluster around the theoretical prediction
+
+$$
+c_2=45\pi\approx141.37.
+$$
+
+![Numerical vs theoretical precession](images/numerical_vs_theoretical_precession-2.png?raw=true)
+
+**Figure 5.** *Comparison between the numerical periapsis precession and the theoretical relativistic expansion.*
+
+Figure 5 compares the numerical periapsis precession with the theoretical expansion. The leading-order approximation,
+
+$$
+\Delta\phi=\frac{6\pi}{L^2},
+$$
+
+agrees closely with the numerical results in the weak-field limit, where $1/L^2$ is small. As $1/L^2$ increases, however, it increasingly underestimates the measured precession.
+
+Including the next-to-leading-order term gives
 
 $$
 \Delta\phi=
@@ -581,62 +623,50 @@ $$
 \frac{45\pi}{L^4}.
 $$
 
-The comparison shows how adding the higher-order correction improves the theoretical description of the numerical results away from the strict weak-field limit.
+This produces much better agreement with the numerical data across the plotted range and captures the upward curvature that becomes more apparent as the gravitational field strengthens.
 
 ### 5. Critical Perturbation Near the ISCO
 
-![Critical perturbation near the ISCO](images/isco_critical_perturbation.png?raw=true)
+![Critical perturbation near the ISCO](images/isco_critical_perturbation-2.png?raw=true)
 
 **Figure 5.** *Critical fractional radial perturbation required to produce a greater than 10% radial deviation for circular orbits near the ISCO.*
 
-The final simulation examines the stability of circular orbits as their radius approaches the theoretical ISCO at
+This experiment examines the numerical stability boundary near the theoretical ISCO at $r_c=6$. A $10%$ relative radial deviation is used as the numerical criterion for stability. This threshold is arbitrary and does not represent a physical boundary. The critical perturbation $\epsilon_{\rm crit}$ is defined as the largest inward fractional perturbation that stays below this threshold.
 
-$$
-r_c=6.
-$$
+Only inward perturbations are considered because outward perturbations move the particle into a more stable region, where the orbit remains bounded around a larger radius. Perturbations with $\epsilon<\epsilon_{\rm crit}$ remain within the $10%$ criterion, while larger perturbations can push the orbit into the unstable region and cause a plunge.
 
-For each circular-orbit radius, both inward and outward radial perturbations are tested. The perturbation size is increased until the orbit's radial deviation exceeds 10%.
+The stability boundary is tested for maximum integration times of $10T$, $20T$, $30T$, and $40T$, where $T$ is the orbital period. At shorter times, slowly growing instabilities near the ISCO may not have enough time to reach the $10%$ threshold, making the stability region appear larger.
 
-The simulation is repeated for different maximum integration times, measured in orbital periods.
+The $20T$, $30T$, and $40T$ curves converge closely, showing that the numerical stability boundary becomes largely independent of integration time. This also shows that the specific $10%$ threshold is not important once the integration time is long enough for the instability to develop.
 
-The resulting curves show how the critical perturbation changes as the circular orbit approaches the ISCO. The decreasing stability margin near the theoretical boundary provides a numerical indication of the transition from stable to unstable circular motion.
-
-Using different integration times is also important because an unstable orbit may require time for the perturbation to grow enough to cross the chosen 10% threshold.
+The converged boundary drops sharply as $r_c$ approaches the ISCO and approaches zero near $r_c\approx6.1$. The small offset from the theoretical value $r_c=6$ is expected from the finite perturbation sizes and integration timestep. Overall, the results show that the critical perturbation becomes increasingly small near the ISCO, consistent with the loss of radial stability predicted by the analytical model.
 
 ## Key Findings
 
-* Euler's Method is first-order accurate and shows significant long-term energy drift in orbital simulations.
-* RK4 achieves fourth-order convergence and maintains much smaller numerical errors over long integrations.
-* Velocity Verlet is second-order accurate but has favorable long-term behavior for conservative orbital systems.
-* The Newtonian simulations can be compared directly with an analytical Keplerian solution obtained from Kepler's equation.
-* The relativistic correction causes the periapsis to advance, so the orbit is no longer exactly closed.
-* The leading-order numerical precession coefficient approaches the theoretical value $6\pi$.
-* The next-to-leading-order correction is consistent with a $45\pi/L^4$ contribution.
-* Relativistic effects become increasingly important as the orbital radius decreases.
-* Circular orbits become increasingly sensitive to radial perturbations as the radius approaches the ISCO at $r_c=6$.
+* Euler's Method is first-order accurate and shows significant long-term energy drift, while RK4 has fourth-order convergence and much smaller short-term errors.
+* Velocity Verlet is second-order accurate but has better bounded energy behavior over long integrations of conservative orbits.
+* The Newtonian simulations agree with an analytical Keplerian solution, providing a direct reference for numerical error and convergence.
+* The relativistic correction causes periapsis precession, with the leading-order term consistent with $6\pi/L^2$ and the next-order term consistent with $45\pi/L^4$.
+* Relativistic effects become stronger at smaller orbital radii, and circular orbits become increasingly sensitive to perturbations as $r_c$ approaches the ISCO at $r_c=6$.
 
 ## Future Improvements
 
-* Compare the numerical trajectories with a higher-precision reference solution rather than relying only on the analytical Newtonian solution.
-* Implement adaptive timestep integration for the relativistic simulations.
-* Compare RK4 and Velocity Verlet over the same number of orbital periods for a more direct long-term comparison.
-* Investigate angular-momentum conservation in addition to energy conservation.
-* Improve the periapsis detection by interpolating the radial-velocity zero crossing more accurately.
-* Explore the dependence of relativistic precession on eccentricity as well as angular momentum.
-* Extend the relativistic model to a more complete treatment of Schwarzschild geodesics.
-* Investigate the growth rate of perturbations near the ISCO rather than only measuring whether a fixed 10% threshold is crossed.
+* Explore how relativistic periapsis precession depends on eccentricity and angular momentum.
+* Investigate zoom-whirl behavior for near-critical relativistic orbits.
+* Analyze the Schwarzschild effective potential and relate its structure to the numerically observed orbital behavior.
+* Investigate relativistic gravitational scattering and the transition between scattering and capture.
+* Extend the model to null geodesics and investigate gravitational light deflection.
+* Study the separatrix between bound, zoom-whirl, scattering, and plunging trajectories.
 
 ## Conclusion
 
-This project uses orbital dynamics to study numerical integration, conservation laws, relativistic corrections, perihelion precession, and orbital stability.
+This project uses orbital dynamics to study numerical integration, conservation laws, relativistic corrections, periapsis precession, and orbital stability.
 
-The Newtonian problem provides a useful benchmark because its analytical Keplerian solution allows numerical errors to be measured directly. The convergence analysis shows the different orders of accuracy of Euler's Method, RK4, and Velocity Verlet, while the long-term simulations demonstrate that accuracy and physical stability are not necessarily the same thing.
+The Newtonian simulations provide a useful benchmark through the analytical Keplerian solution. Comparing Euler's Method, RK4, and Velocity Verlet shows the difference between numerical accuracy and long-term stability, with RK4 giving the smallest short-term errors and Velocity Verlet showing better bounded energy behavior.
 
-The relativistic simulations then show how a small modification to the effective potential changes the qualitative behavior of the orbit. Instead of closing exactly after each revolution, the periapsis advances. Measuring this angular shift allows the leading-order and next-to-leading-order coefficients of the precession to be extracted numerically.
+The relativistic simulations then show how a small correction to the Newtonian dynamics produces periapsis precession. Measuring this shift allows the leading-order and next-to-leading-order precession coefficients to be extracted numerically and compared with the theoretical values.
 
-The final simulations investigate circular-orbit stability near the ISCO. As the circular radius approaches the theoretical value $r_c=6$, small radial perturbations become increasingly important, providing a numerical picture of the transition toward unstable orbital motion.
-
-Overall, the project connects numerical methods with physical predictions. The same simulation framework is used first to test the accuracy and long-term behavior of numerical integrators and then to investigate phenomena that have no simple closed Newtonian orbit, such as relativistic precession and the stability boundary near the ISCO.
+Finally, the stability analysis near the ISCO shows that radial perturbations become increasingly important as $r_c$ approaches $6$. Overall, the project connects numerical methods with physical predictions and shows how the same simulation framework can be used to study both numerical behavior and relativistic orbital dynamics.
 
 ## Project Structure
 
@@ -667,8 +697,8 @@ Orbital-Dynamics-and-Relativistic-Precession/
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
-cd <repository-directory>
+git clone https://github.com/rohitkb7782/Orbital-Dynamics-and-Relativistic-Precession.git
+cd Orbital-Dynamics-and-Relativistic-Precession
 ```
 
 ### 2. Install the dependencies
