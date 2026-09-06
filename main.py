@@ -59,13 +59,13 @@ for col, Vy0 in enumerate([0.3, 0.55]):
         exact_position = np.array([x_exact[0], y_exact[0]])
 
         errors["Euler"].append(
-            np.linalg.norm(euler[-1, :2] - exact_position)
+            np.linalg.norm(euler[-1, :2] - exact_position) / np.linalg.norm(exact_position) * 100
         )
         errors["RK4"].append(
-            np.linalg.norm(rk4[-1, :2] - exact_position)
+            np.linalg.norm(rk4[-1, :2] - exact_position) / np.linalg.norm(exact_position) * 100
         )
         errors["Velocity Verlet"].append(
-            np.linalg.norm(positions[-1] - exact_position)
+            np.linalg.norm(positions[-1] - exact_position) / np.linalg.norm(exact_position) * 100
         )
 
     slopes = {
@@ -82,7 +82,7 @@ for col, Vy0 in enumerate([0.3, 0.55]):
     )
     axes[0, col].set(
         xlabel="Timestep Size",
-        ylabel="Position Error",
+        ylabel="Relative Position Error (%)",
         title=title,
     )
     axes[0, col].legend()
@@ -92,12 +92,13 @@ for col, Vy0 in enumerate([0.3, 0.55]):
         axes[1, col].loglog(
             timesteps,
             error,
+            color="green" if method == "Euler" else None,
             label=f"{method} (slope = {slopes[method]:.2f})",
         )
 
     axes[1, col].set(
         xlabel="Timestep",
-        ylabel="Position Error",
+        ylabel="Relative Position Error (%)",
         title=title,
     )
     axes[1, col].legend()
