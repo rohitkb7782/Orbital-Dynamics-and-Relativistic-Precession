@@ -261,10 +261,11 @@ $$
 =\frac{2\pi}{\sqrt{1-6u_0}}.
 $$
 
-The Newtonian value is $2\pi$, so the relativistic periapsis advance is
+For a Newtonian orbit, the radial cycle closes after one full revolution, so $\Phi=2\pi$. The relativistic periapsis advance is therefore
 
 $$
 \Delta\phi=
+\Phi-2\pi=
 2\pi
 \left[
 \frac{1}{\sqrt{1-6u_0}}-1
