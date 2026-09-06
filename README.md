@@ -32,7 +32,7 @@ Finally, I investigate circular orbits near the ISCO. I apply small radial pertu
 
 ## Mathematical Model and Numerical Methods
 
-The simulations use normalized units with \(GM=1\), with the state vector
+The simulations use normalized units with $GM=c=1$, with the state vector
 
 $$
 \mathbf{s}=(x,y,v_x,v_y).
