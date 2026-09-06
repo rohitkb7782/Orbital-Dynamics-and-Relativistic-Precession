@@ -31,33 +31,18 @@ Next, I add a relativistic correction to study periapsis precession. I measure t
 
 Finally, I investigate circular orbits near the ISCO. I apply small radial perturbations and increase their size until the orbit becomes unstable. This gives a numerical estimate of the stability boundary that can be compared with the analytical prediction.
 
-## Mathematical Model
+## Mathematical Model and Numerical Methods
 
-The simulations use normalized units with
-
-$$
-GM=1.
-$$
-
-The state vector is
+The simulations use normalized units with \(GM=1\), with the state vector
 
 $$
-\mathbf s=(x,y,v_x,v_y),
+\mathbf{s}=(x,y,v_x,v_y).
 $$
 
-with
+The equations of motion are solved numerically using Euler's Method, RK4, and Velocity Verlet. The mathematical formulation and numerical methods are described in more detail in their own docs:
 
-$$
-r=\sqrt{x^2+y^2}.
-$$
-
-For the full mathematical model, see [Mathematical Model](docs/mathematical_model.md).
-
-## Numerical Methods
-
-I compare three numerical integrators: Euler's Method, fourth-order Runge-Kutta (RK4), and Velocity Verlet.
-
-For the full description of the numerical methods and convergence analysis, see [Numerical Methods](docs/numerical_methods.md).
+- [Mathematical Model](docs/mathematical_model.md)
+- [Numerical Methods](docs/numerical_methods.md)
 
 ## Results
 
