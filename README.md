@@ -456,17 +456,29 @@ and its time-symmetric structure gives good long-term energy behavior for conser
 
 ### Convergence and Energy Conservation
 
-Numerical convergence is tested by comparing the numerical position with the Keplerian reference:
+Numerical convergence is tested by comparing the numerical position with the Keplerian reference using the relative position error:
 
 $$
 \epsilon_r=
+\frac{
 \left|
 \mathbf r_{\rm numerical}-
 \mathbf r_{\rm exact}
-\right|.
+\right|
+}{
+\left|
+\mathbf r_{\rm exact}
+\right|
+}.
 $$
 
-The expected scaling is $\epsilon_r\propto h^p,$ where $p$ is the method's order.
+The expected scaling is
+
+$$
+\epsilon_r\propto h^p,
+$$
+
+where $p$ is the method's order.
 
 Long-term stability is measured using the relative energy error,
 
@@ -481,23 +493,23 @@ This allows the project to compare both short-term accuracy and long-term energy
 
 ### 1. Numerical Convergence
 
-![Numerical convergence](images/numerical_convergence.png?raw=true)
+![Numerical convergence](images/numerical_convergence-2.png?raw=true)
 
-**Figure 1.** *Numerical convergence for eccentric and near-circular Newtonian orbits. The top row shows the relative position error on a linear scale, while the bottom row shows the same error on a log-log scale with fitted convergence slopes.*
+**Figure 1.** *Numerical convergence for eccentric and near-circular Newtonian orbits. The top row shows the position error on a linear scale, while the bottom row shows the same error on a log-log scale with fitted convergence slopes.*
 
-The eccentric and near-circular initial conditions provide two different tests of the numerical methods.
+The eccentric ($e=0.730$) and near-circular ($e=0.093$) initial conditions provide two distinct tests of the numerical integrators. The near-circular orbit tests conditions similar to the near-circular relativistic orbits studied later in the project. The eccentric orbit acts as a stress test, since the radius and velocity change much more rapidly near periapsis.
 
-The log-log plots make the convergence rate particularly clear. If the numerical error follows
+The linear-scale plots show only Velocity Verlet and RK4 because Euler's Method has much larger errors over this timestep range. This difference is especially clear in the log-log plots, where Euler's error is on the order of $10^2$. Over the short interval of a few orbital periods, RK4 clearly outperforms Velocity Verlet and maintains very small position errors, particularly for timesteps between $10^{-3}$ and $10^{-2}$.
+
+The log-log plots also show the expected convergence behavior,
 
 $$
-\epsilon_r\propto\Delta t^p,
+\epsilon_r\propto h^p,
 $$
 
-then the slope of the log-log curve approaches $p$.
+where $p$ is the convergence order. Euler's Method shows first-order behavior, while Velocity Verlet follows the expected second-order scaling. RK4 shows much steeper convergence and reaches extremely small errors at smaller timesteps.
 
-Euler's Method is expected to show first-order convergence, while RK4 should show fourth-order convergence. Velocity Verlet is expected to show second-order convergence.
-
-The comparison also demonstrates that convergence is not only a property of the numerical method but can depend on the dynamics being simulated. The eccentric orbit contains stronger variations in velocity and radius, making it a more demanding numerical problem than the nearly circular orbit.
+Overall, this experiment shows that RK4 is the most accurate method over the short timescale considered, while the eccentric orbit provides a more demanding test of the integrators than the near-circular case.
 
 ### 2. Long-Term Energy Conservation
 
@@ -505,15 +517,15 @@ The comparison also demonstrates that convergence is not only a property of the 
 
 **Figure 2.** *Relative energy error for Euler's Method, RK4, and Velocity Verlet during orbital evolution. The simulations compare an eccentric orbit and a near-circular orbit.*
 
-The energy plots show how numerical errors accumulate over many orbital periods.
+This experiment continues the comparison from the previous section by examining how the three integrators behave over many orbital periods. The eccentric ($e=0.730$) and near-circular ($e=0.093$) orbits provide two different tests of long-term energy conservation.
 
-Euler's Method generally exhibits significant long-term energy drift. Because the orbit is repeatedly updated using only the derivative at the beginning of each timestep, small errors accumulate and can alter the orbital energy substantially.
+The simulations use $h=0.1$, with Euler and RK4 run for $500$ orbital periods and Velocity Verlet run for $10$ periods. Euler's Method shows significant energy drift in both cases, with the error becoming especially large for the eccentric orbit. The rapid changes near periapsis make the eccentric orbit more demanding and amplify the energy error over time.
 
-RK4 has much smaller local errors and therefore maintains the orbital energy much more accurately over the same interval.
+RK4 performs much better, particularly for the near-circular orbit, where the energy error remains very small for most of the simulation. However, because RK4 is not symplectic, its energy error gradually accumulates over long times. This becomes much more noticeable for the eccentric orbit over $500$ periods.
 
-Velocity Verlet provides a different type of advantage. Its second-order accuracy is lower than RK4, but its structure is well suited to conservative systems. Its energy error remains bounded rather than growing in the same way as a simple first-order method.
+Velocity Verlet shows a different behavior. Instead of steadily drifting, its energy error remains bounded and oscillates around the correct value. This gives Velocity Verlet better long-term energy conservation, especially for the eccentric orbit.
 
-The difference between the eccentric and near-circular cases is also useful. Eccentric orbits experience larger variations in radius and velocity, so numerical errors can have a more pronounced effect on the dynamics.
+Overall, RK4 outperforms Velocity Verlet for the shorter simulations used in the convergence test, except when highly eccentric orbits are evolved for a long time. RK4 is therefore chosen as the main integrator for the relativistic simulations, which focus on near-circular orbits over relatively short timescales. Its high accuracy is important for measuring small effects such as periapsis precession.
 
 ### 3. Relativistic Orbital Dynamics
 
