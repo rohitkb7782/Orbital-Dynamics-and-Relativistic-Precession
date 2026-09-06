@@ -11,8 +11,7 @@ I then add a relativistic correction to study periapsis precession and the stabi
 ## Table of Contents
 
 * [Motivation](#motivation)
-* [Mathematical Model](#mathematical-model)
-* [Numerical Methods](#numerical-methods)
+* [Mathematical Model and Numerical Methods](#mathematical-model-and-numerical-methods)
 * [Results](#results)
 * [Key Findings](#key-findings)
 * [Future Improvements](#future-improvements)
