@@ -400,7 +400,8 @@ ax3.set(
 )
 ax3.legend()
 fig3.tight_layout()
-plt.savefig("relativistic_precession.png")
+fig.savefig("precession_coefficients.png", dpi=300, bbox_inches="tight")
+fig3.savefig("numerical_vs_theoretical_precession.png", dpi=300, bbox_inches="tight")
 plt.show()
 
 
