@@ -1,12 +1,10 @@
 # Orbital Dynamics and Relativistic Precession
 
-A computational physics project using numerical integration to study Newtonian orbital motion, numerical convergence, long-term energy conservation, relativistic orbital precession, and stability near the innermost stable circular orbit (ISCO).
+A computational physics project using numerical simulation to study orbital dynamics. The project compares Euler's Method, fourth-order Runge-Kutta (RK4), and Velocity Verlet for Newtonian orbits. Analytical Keplerian orbits are used as a reference to measure numerical error and convergence. Long-term energy behavior is also compared between the different methods. A relativistic correction is then introduced to study periapsis precession and the stability of circular orbits near the innermost stable circular orbit (ISCO).
 
-The project compares Euler's Method, fourth-order Runge-Kutta (RK4), and Velocity Verlet for Newtonian orbital dynamics. Analytical Keplerian orbits are used as a reference solution to measure numerical error and convergence. The project then introduces a relativistic correction to the gravitational potential and uses numerical simulations to investigate perihelion precession and the stability of circular orbits near the ISCO.
+![Relativistic orbital dynamics](images/relativistic_orbits.png?raw=true)
 
-![Numerical convergence](images/numerical_convergence.png?raw=true)
-
-**Figure 1.** *Numerical convergence of the orbital integrators for eccentric and near-circular Newtonian orbits.*
+**Figure 3.** *Relativistic orbital dynamics for weak-field, intermediate-radius, and near-ISCO orbits. Each panel compares outward and inward radial perturbations.*
 
 ## Table of Contents
 
@@ -14,10 +12,9 @@ The project compares Euler's Method, fourth-order Runge-Kutta (RK4), and Velocit
 * [Mathematical Model](#mathematical-model)
 
   * [Newtonian Orbital Dynamics](#newtonian-orbital-dynamics)
-  * [Orbital Energy and Angular Momentum](#orbital-energy-and-angular-momentum)
   * [Keplerian Analytical Solution](#keplerian-analytical-solution)
   * [Relativistic Correction](#relativistic-correction)
-  * [Circular Orbits and the ISCO](#circular-orbits-and-the-isco)
+  * [Circular Orbits, Stability, and the ISCO](#circular-orbits-stability-and-the-isco)
   * [Relativistic Precession](#relativistic-precession)
 * [Numerical Methods](#numerical-methods)
 
@@ -41,55 +38,29 @@ The project compares Euler's Method, fourth-order Runge-Kutta (RK4), and Velocit
 
 ## Motivation
 
-Orbital dynamics provides a useful way to study both numerical integration and the underlying physics of dynamical systems.
+Orbital dynamics is a useful system for studying numerical methods and the behavior of dynamical systems. For a Newtonian gravitational orbit, there is a known analytical solution in terms of Keplerian motion, which is useful for comparing numerical solutions with an exact result.
 
-For a Newtonian gravitational orbit, the equations of motion have a known analytical solution in terms of Keplerian motion. This makes the system particularly useful for testing numerical methods because the numerical solution can be compared directly with an exact result.
+I first compare Euler's Method, RK4, and Velocity Verlet using two different orbital shapes: an eccentric orbit and a nearly circular orbit. The analytical Keplerian solution provides a reference for the numerical error. I measure this error as the timestep is changed. I then compare the long-term energy behavior of the different methods over many orbital periods.
 
-I first compare Euler's Method, RK4, and Velocity Verlet using two different orbital shapes: an eccentric orbit and a nearly circular orbit. The analytical Keplerian solution provides a reference position, allowing the numerical error to be measured as the timestep is changed.
+Next, I introduce a relativistic correction to study periapsis precession. I measure the precession per orbit and fit the results to determine the leading- and next-to-leading-order coefficients. These coefficients can then be used to predict the precession for a given orbit.
 
-I then examine the long-term energy behavior of the different integrators. This is especially important for orbital simulations because a method can have small short-term errors while still producing unphysical behavior over many orbital periods.
-
-Finally, I introduce a relativistic correction to the effective potential. This causes the orbit to precess rather than closing on itself. By measuring the angular shift between successive periapsides, the numerical simulations can be used to extract the leading-order and next-to-leading-order relativistic precession coefficients.
-
-The final part of the project investigates the stability of circular orbits near the ISCO. Small radial perturbations are applied to circular orbits to determine when the orbit becomes unstable.
+Finally, I investigate the stability of circular orbits near the ISCO. Small radial perturbations are applied to the circular orbits. The perturbation size is increased until the orbit becomes unstable. This allows the numerical ISCO to be compared with the analytical prediction.
 
 ## Mathematical Model
 
-The simulations use normalized units in which the gravitational parameter is
+The simulations use normalized units with
 
 $$
 GM=1.
 $$
 
-The position and velocity of the orbiting body are written as
+The state vector is
 
 $$
-\mathbf r=
-\begin{bmatrix}
-x\\
-y
-\end{bmatrix},
-\qquad
-\mathbf v=
-\begin{bmatrix}
-v_x\\
-v_y
-\end{bmatrix}.
+\mathbf s=(x,y,v_x,v_y),
 $$
 
-The full numerical state is therefore
-
-$$
-\mathbf s=
-\begin{bmatrix}
-x\\
-y\\
-v_x\\
-v_y
-\end{bmatrix}.
-$$
-
-The distance from the central object is
+with
 
 $$
 r=\sqrt{x^2+y^2}.
@@ -97,480 +68,419 @@ $$
 
 ### Newtonian Orbital Dynamics
 
-For Newtonian gravity, the acceleration is directed toward the origin and has magnitude proportional to $1/r^2$:
+Newtonian gravity gives
 
 $$
-\mathbf a=-\frac{GM}{r^3}\mathbf r.
+\mathbf a=-\frac{\mathbf r}{r^3},
 $$
 
-With $GM=1$, this becomes
-
-$$
-\mathbf a=-\frac{\mathbf r}{r^3}.
-$$
-
-In Cartesian coordinates,
+or
 
 $$
 \ddot{x}=-\frac{x}{r^3},
-$$
-
-$$
+\qquad
 \ddot{y}=-\frac{y}{r^3}.
 $$
 
-The corresponding first-order system is
+The specific energy and angular momentum are
 
 $$
-\frac{dx}{dt}=v_x,
-$$
-
-$$
-\frac{dy}{dt}=v_y,
-$$
-
-$$
-\frac{dv_x}{dt}=-\frac{x}{r^3},
-$$
-
-$$
-\frac{dv_y}{dt}=-\frac{y}{r^3}.
-$$
-
-These equations are implemented by `orbit_derivative()` in `physics.py`.
-
-For the Newtonian simulations, the initial position is
-
-$$
-\mathbf r_0=(3,0),
-$$
-
-while the initial velocity is chosen as
-
-$$
-\mathbf v_0=(0,V_{y0}).
-$$
-
-Two values are used:
-
-$$
-V_{y0}=0.3
-$$
-
-for the eccentric orbit and
-
-$$
-V_{y0}=0.55
-$$
-
-for the near-circular orbit.
-
-### Orbital Energy and Angular Momentum
-
-For a unit-mass body, the specific mechanical energy is
-
-$$
-E=\frac{v^2}{2}-\frac{GM}{r}.
-$$
-
-With the normalized value $GM=1$,
-
-$$
-E=\frac{v^2}{2}-\frac1r.
-$$
-
-For a bound orbit, $E<0$.
-
-The specific angular momentum is
-
-$$
+E=\frac{v^2}{2}-\frac1r,
+\qquad
 L_z=xv_y-yv_x.
 $$
 
-Because the Newtonian gravitational force is central, angular momentum is conserved.
-
-The eccentricity can be calculated from the energy and angular momentum:
+For bound orbits, the semimajor axis and eccentricity are
 
 $$
-e=
-\sqrt{
-1+\frac{2EL_z^2}{(GM)^2}
-}.
+a=-\frac{1}{2E},
+\qquad
+e=\sqrt{1+2EL_z^2}.
 $$
 
-This quantity determines the shape of the Keplerian orbit.
-
-For the initial conditions used in the simulations, the $V_{y0}=0.3$ orbit is significantly eccentric, while the $V_{y0}=0.55$ orbit is close to circular.
-
-For a bound Newtonian orbit, the semi-major axis is related to the energy by
-
-$$
-a=-\frac{GM}{2E}.
-$$
-
-The orbital period is then
-
-$$
-T=2\pi\sqrt{\frac{a^3}{GM}}.
-$$
-
-This is the form of Kepler's third law used to determine the simulation times for the long-term energy comparison.
+These quantities are used to construct the analytical Keplerian reference solution.
 
 ### Keplerian Analytical Solution
 
-The Newtonian two-body problem has an analytical solution in terms of the eccentric anomaly $E_{\mathrm{anom}}$.
-
-The mean motion is
+The Newtonian orbit is obtained using the eccentric anomaly $E_{\rm anom}$, which satisfies Kepler's equation
 
 $$
-n=\sqrt{\frac{GM}{a^3}},
+E_{\rm anom}-e\sin E_{\rm anom}=nt+C,
 $$
 
-and Kepler's equation is
+where $C$ encodes the initial conditions and
 
 $$
-E_{\mathrm{anom}}-e\sin E_{\mathrm{anom}}=
-nt+C,
+n=\sqrt{\frac{1}{a^3}}.
 $$
 
-where $C$ is determined by the initial conditions.
-
-Once the eccentric anomaly has been found, the position can be written as
+The position is then
 
 $$
-x=a(e-\cos E_{\mathrm{anom}})
+x=a(e-\cos E_{\rm anom}),
 $$
 
-and
-
 $$
-y=-a\sqrt{1-e^2}\sin E_{\mathrm{anom}}.
+y=-a\sqrt{1-e^2}\sin E_{\rm anom}.
 $$
 
-The project solves Kepler's equation numerically using `fsolve` and uses the resulting position as the analytical reference.
-
-This gives an independent solution against which the numerical integrators can be tested.
+Kepler's equation is solved numerically with `fsolve`, providing an independent reference solution for testing the numerical integrators.
 
 ### Relativistic Correction
 
-To investigate relativistic effects, the Newtonian potential is modified by an additional angular-momentum-dependent term.
-
-The effective potential used in the project is
-
-$$
-V(r)=-\frac1r+\frac{L^2}{r^3},
-$$
-
-where $L$ is the angular momentum associated with the orbit.
-
-The radial derivative of this potential gives the corresponding acceleration:
+The relativistic model adds the Schwarzschild correction to the Newtonian force:
 
 $$
 \mathbf a=
--\frac{\mathbf r}{r^3}-
-\frac{3L^2\mathbf r}{r^5}.
+-\frac{\mathbf r}{r^3}
+-\frac{3L^2\mathbf r}{r^5}.
 $$
 
-In Cartesian coordinates,
+Introducing $u=1/r$, the corresponding Binet equation is
 
 $$
-\ddot{x}=
--\frac{x}{r^3}-
-\frac{3L^2x}{r^5},
+\boxed{
+u''+u=\frac1{L^2}+3u^2
+}.
 $$
 
-and
+This equation provides the analytical basis for the precession and ISCO analyses.
+
+### Circular Orbits, Stability, and the ISCO
+
+For a circular orbit, $u=u_0$ and $u''=0$, giving
 
 $$
-\ddot{y}=
--\frac{y}{r^3}-
-\frac{3L^2y}{r^5}.
+3u_0^2-u_0+\frac1{L^2}=0.
 $$
 
-The resulting first-order equations are therefore
+The stable circular-orbit branch is
 
 $$
-\frac{dx}{dt}=v_x,
+u_0=
+\frac{1-\sqrt{1-12/L^2}}{6}.
 $$
 
-$$
-\frac{dy}{dt}=v_y,
-$$
+To determine its stability, introduce a small radial perturbation,
 
 $$
-\frac{dv_x}{dt}=
--\frac{x}{r^3}-
-\frac{3L^2x}{r^5},
+u=u_0+\delta u.
 $$
 
-$$
-\frac{dv_y}{dt}=
--\frac{y}{r^3}-
-\frac{3L^2y}{r^5}.
-$$
-
-This model is implemented by `relativistic_orbit_derivative()`.
-
-Unlike the Newtonian problem, the additional term changes the orbital dynamics so that the periapsis does not return to exactly the same angular position after each orbit. The resulting advance of the periapsis is the relativistic precession measured in the later simulations.
-
-### Circular Orbits and the ISCO
-
-Circular orbits are particularly useful for studying orbital stability.
-
-For the relativistic model, the initial circular-orbit radius is chosen as
+Keeping only first-order terms gives
 
 $$
-r_c=\frac{1}{V_{y0}^2}+3.
+\delta u''+(1-6u_0)\delta u=0,
+$$
+
+so the radial frequency is
+
+$$
+\omega_r^2=1-6u_0
+=1-\frac6{r_c}.
+$$
+
+For $\omega_r^2>0$,
+
+$$
+\delta u\propto\cos(\omega_r\phi),
+$$
+
+so the perturbation remains bounded and the orbit is stable. For $\omega_r^2<0$, the frequency is imaginary and
+
+$$
+\delta u\propto e^{\pm\gamma\phi},
+$$
+
+so the perturbation grows and the orbit is unstable. At $\omega_r=0$, the radial restoring force vanishes, giving marginal stability.
+
+Thus,
+
+$$
+r_c>6\Rightarrow\text{stable},
+\qquad
+r_c=6\Rightarrow\text{marginally stable},
+\qquad
+r_c<6\Rightarrow\text{unstable}.
+$$
+
+Therefore,
+
+$$
+\boxed{r_{\rm ISCO}=6}.
+$$
+
+To initialize the circular orbits used in the simulations, the circularity condition is written in terms of the tangential velocity. The required centripetal acceleration satisfies
+
+$$
+\frac{V_t^2}{r}
+=\frac1{r^2}+\frac{3L^2}{r^4}.
+$$
+
+Substituting $L=rV_t$ gives
+
+$$
+V_t^2r=1+3V_t^2,
+$$
+
+so
+
+$$
+\boxed{
+r_c=\frac1{V_t^2}+3
+}.
 $$
 
 The corresponding initial state is
 
 $$
-(x_0,y_0,v_{x0},v_{y0})=
-(r_c,0,0,V_{y0}).
+(x_0,y_0,v_{x0},v_{y0})
+=(r_c,0,0,V_t).
 $$
 
-As the orbital velocity increases, the circular-orbit radius decreases. This allows the simulations to approach the region where circular orbits become unstable.
-
-The theoretical ISCO in the normalized units used here occurs at
+The simulations then test stability by applying small radial perturbations,
 
 $$
-r_c=6.
+r_0\rightarrow r_0(1\pm\epsilon),
 $$
 
-To investigate this transition numerically, the circular orbit is perturbed radially by a small fractional amount:
-
-$$
-r_0\rightarrow r_0(1\pm\epsilon).
-$$
-
-Both outward and inward perturbations are tested.
-
-If the orbit remains close to the circular trajectory, the perturbation is stable. If the radial deviation grows substantially, the circular orbit is unstable.
-
-The final simulation measures the smallest perturbation that produces a radial deviation greater than 10% over a specified number of orbital periods.
+and measuring the resulting radial deviation.
 
 ### Relativistic Precession
 
-A bound Newtonian orbit is closed after one orbital period. The relativistic correction breaks this exact closure, causing the periapsis to advance from one orbit to the next.
-
-The periapsis angle is found by detecting when the radial velocity changes from negative to positive:
+Since the radial perturbation oscillates as
 
 $$
-v_r=\frac{\mathbf r\cdot\mathbf v}{r}.
+\delta u\propto\cos(\omega_r\phi),
 $$
 
-At each periapsis, the angular position is calculated using
+one complete radial cycle requires
 
 $$
-\phi=\tan^{-1}\left(\frac{y}{x}\right).
+\Phi=\frac{2\pi}{\omega_r}
+=\frac{2\pi}{\sqrt{1-6u_0}}.
 $$
 
-The angles are unwrapped so that the total accumulated angular motion can be measured continuously.
-
-The average angular separation between successive periapsides is then calculated. This gives the numerical periapsis-to-periapsis angular advance.
-
-For the weak-field expansion used in the analysis, the precession is expected to have the form
+The Newtonian value is $2\pi$, so the relativistic periapsis advance is
 
 $$
-\Delta\phi
-\approx
+\Delta\phi=
+2\pi
+\left[
+\frac{1}{\sqrt{1-6u_0}}-1
+\right].
+$$
+
+From the circular-orbit equation,
+
+$$
+u_0=
+\frac{1-\sqrt{1-12/L^2}}{6},
+$$
+
+so
+
+$$
+1-6u_0=
+\sqrt{1-\frac{12}{L^2}}.
+$$
+
+Therefore,
+
+$$
+\Delta\phi=
+2\pi
+\left[
+\left(1-\frac{12}{L^2}\right)^{-1/4}
+-1
+\right].
+$$
+
+Using the Taylor expansion
+
+$$
+(1-x)^{-1/4}=
+1+\frac{x}{4}
++\frac{5x^2}{32}
++\cdots,
+$$
+
+with $x=12/L^2$, gives
+
+$$
+\Delta\phi=
+2\pi
+\left[
+\frac{3}{L^2}
++
+\frac{45}{2L^4}
++\cdots
+\right].
+$$
+
+Thus,
+
+$$
+\boxed{
+\Delta\phi=
 \frac{6\pi}{L^2}
 +
 \frac{45\pi}{L^4}
-+\cdots.
++\mathcal O(L^{-6})
+}.
 $$
 
-The simulations test these coefficients numerically by fitting the measured precession as a function of
+Numerically, periapsides are identified when
 
 $$
-\frac{1}{L^2}.
+v_r=\frac{\mathbf r\cdot\mathbf v}{r}
 $$
+
+crosses from negative to positive. The angular separation between successive periapsides gives the measured precession, which is fitted against $1/L^2$.
 
 ## Numerical Methods
 
-The equations are integrated numerically using three different methods: Euler's Method, fourth-order Runge-Kutta, and Velocity Verlet.
-
-Comparing these methods allows both their formal accuracy and their long-term physical behavior to be studied.
+Three numerical integrators are used: Euler, fourth-order Runge-Kutta (RK4), and Velocity Verlet.
 
 ### Euler's Method
 
-Euler's Method is the simplest of the numerical integrators used in the project.
-
-For a general state vector,
+Euler's Method was derived in the previous project, where its implementation and convergence were established. It advances the state using the derivative evaluated at the current time:
 
 $$
-\mathbf s_{n+1}=
-\mathbf s_n+
-\mathbf f(\mathbf s_n,t_n)\Delta t.
+\mathbf s_{n+1}
+=\mathbf s_n+
+\mathbf f(\mathbf s_n,t_n)h.
 $$
 
-For the orbital equations, this gives
+It has global error
 
 $$
-x_{n+1}=x_n+v_{x,n}\Delta t,
+O(h).
 $$
 
-$$
-y_{n+1}=y_n+v_{y,n}\Delta t,
-$$
-
-$$
-v_{x,n+1}=
-v_{x,n}
--\frac{x_n}{r_n^3}\Delta t,
-$$
-
-and
-
-$$
-v_{y,n+1}=
-v_{y,n}
--\frac{y_n}{r_n^3}\Delta t.
-$$
-
-Euler's Method has local truncation error
-
-$$
-O(\Delta t^2)
-$$
-
-and global error
-
-$$
-O(\Delta t).
-$$
-
-It is computationally inexpensive, but its errors accumulate over time. For orbital dynamics, this can lead to significant changes in the orbital energy and eventually distort the orbit.
+Here, Euler's Method serves primarily as a baseline for comparison.
 
 ### Fourth-Order Runge-Kutta
 
-The fourth-order Runge-Kutta method, or RK4, uses four derivative evaluations per timestep.
-
-The four intermediate slopes are
+RK4 improves on Euler's Method by evaluating the derivative at four points within each timestep. For
 
 $$
-k_1=f(s_n,t_n),
+\frac{d\mathbf s}{dt}
+=\mathbf f(\mathbf s,t),
+$$
+
+the four derivative estimates are
+
+$$
+k_1
+=\mathbf f(\mathbf s_n,t_n),
 $$
 
 $$
-k_2=f\left(s_n+\frac{\Delta t}{2}k_1,t_n+\frac{\Delta t}{2}\right),
+k_2
+=\mathbf f
+\left(
+\mathbf s_n+\frac{h}{2}k_1,
+t_n+\frac{h}{2}
+\right),
 $$
 
 $$
-k_3=f\left(s_n+\frac{\Delta t}{2}k_2,t_n+\frac{\Delta t}{2}\right),
+k_3
+=\mathbf f
+\left(
+\mathbf s_n+\frac{h}{2}k_2,
+t_n+\frac{h}{2}
+\right),
 $$
 
-and
+$$
+k_4
+=\mathbf f
+\left(
+\mathbf s_n+hk_3,
+t_n+h
+\right).
+$$
+
+These are combined to produce the next state:
 
 $$
-k_4=f(s_n+\Delta t k_3,t_n+\Delta t).
-$$
-
-The final update is
-
-$$
-s_{n+1}=
-s_n+
-\frac{\Delta t}{6}
+\mathbf s_{n+1}
+=\mathbf s_n+
+\frac{h}{6}
 (k_1+2k_2+2k_3+k_4).
 $$
 
-RK4 has local truncation error
+RK4 has global error
 
 $$
-O(\Delta t^5)
+O(h^4).
 $$
-
-and global error
-
-$$
-O(\Delta t^4).
-$$
-
-This makes it substantially more accurate than Euler's Method for sufficiently small timesteps.
-
-RK4 is used throughout the relativistic simulations because of its high accuracy and general applicability to the modified equations of motion.
 
 ### Velocity Verlet
 
-Velocity Verlet is a second-order integration method that updates the position using the current acceleration and then uses the new acceleration to update the velocity.
-
-The position update is
+Velocity Verlet is designed for systems where acceleration depends on position. It first advances the position using the current velocity and acceleration:
 
 $$
-\mathbf r_{n+1}=
-\mathbf r_n+
-\mathbf v_n\Delta t+
-\frac12\mathbf a_n\Delta t^2.
+\mathbf r_{n+1}
+=\mathbf r_n+
+\mathbf v_nh+
+\frac12\mathbf a_nh^2.
 $$
 
-The acceleration is then recalculated at the new position,
+The acceleration is then recomputed from the new position:
 
 $$
-\mathbf a_{n+1}=
-\mathbf a(\mathbf r_{n+1}),
+\mathbf a_{n+1}
+=\mathbf a(\mathbf r_{n+1}),
 $$
 
-and the velocity is updated using
+and the velocity is updated using the average of the old and new accelerations:
 
 $$
-\mathbf v_{n+1}=
-\mathbf v_n+
+\mathbf v_{n+1}
+=\mathbf v_n+
 \frac12
-(\mathbf a_n+\mathbf a_{n+1})
-\Delta t.
+(\mathbf a_n+\mathbf a_{n+1})h.
 $$
 
 Velocity Verlet has global error
 
 $$
-O(\Delta t^2).
+O(h^2),
 $$
 
-Its main advantage for this project is its behavior for conservative orbital systems. Although it has lower formal order than RK4, it has favorable long-term energy behavior and does not require the acceleration to be written as a first-order state derivative.
-
-This makes it particularly useful for comparing short-term numerical accuracy with long-term physical stability.
+and its time-symmetric structure gives good long-term energy behavior for conservative orbital systems.
 
 ### Convergence and Energy Conservation
 
-Two different properties of the numerical methods are tested.
-
-The first is **convergence**. The final numerical position is compared with the analytical Keplerian position for a range of timestep sizes,
-
-$$
-0.002\leq\Delta t\leq0.1.
-$$
-
-The position error is
+Numerical convergence is tested by comparing the numerical position with the Keplerian reference:
 
 $$
 \epsilon_r=
 \left|
-\mathbf r_{\mathrm{numerical}}-
-\mathbf r_{\mathrm{exact}}
+\mathbf r_{\rm numerical}-
+\mathbf r_{\rm exact}
 \right|.
 $$
 
-A log-log plot of error against timestep should approximately follow
+The expected scaling is
 
 $$
-\epsilon_r\propto\Delta t^p,
+\epsilon_r\propto h^p,
 $$
 
-where $p$ is the order of convergence.
+where $p$ is the method's order.
 
-The second property is **long-term energy conservation**.
-
-The relative energy error is calculated as
+Long-term stability is measured using the relative energy error,
 
 $$
 \frac{E(t)-E(0)}{|E(0)|}\times100\%.
 $$
 
-The simulations compare Euler and RK4 over 500 orbital periods and Velocity Verlet over a shorter interval.
+This allows the project to compare both short-term accuracy and long-term energy behavior of the three integrators.
 
-This distinction is useful because a method can have excellent local accuracy while still displaying undesirable long-term behavior.
 
 ## Results
 
