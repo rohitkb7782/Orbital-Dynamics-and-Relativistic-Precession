@@ -466,13 +466,7 @@ $$
 \right|.
 $$
 
-The expected scaling is
-
-$$
-\epsilon_r\propto h^p,
-$$
-
-where $p$ is the method's order.
+The expected scaling is $\epsilon_r\propto h^p,$ where $p$ is the method's order.
 
 Long-term stability is measured using the relative energy error,
 
@@ -489,7 +483,7 @@ This allows the project to compare both short-term accuracy and long-term energy
 
 ![Numerical convergence](images/numerical_convergence.png?raw=true)
 
-**Figure 1.** *Numerical convergence for eccentric and near-circular Newtonian orbits. The top row shows the position error on a linear scale, while the bottom row shows the same error on a log-log scale with fitted convergence slopes.*
+**Figure 1.** *Numerical convergence for eccentric and near-circular Newtonian orbits. The top row shows the relative position error on a linear scale, while the bottom row shows the same error on a log-log scale with fitted convergence slopes.*
 
 The eccentric and near-circular initial conditions provide two different tests of the numerical methods.
 
