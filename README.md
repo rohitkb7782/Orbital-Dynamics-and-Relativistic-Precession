@@ -11,8 +11,26 @@ I then add a relativistic correction to study periapsis precession and the stabi
 ## Table of Contents
 
 * [Motivation](#motivation)
-* [Mathematical Model and Numerical Methods](#mathematical-model-and-numerical-methods)
+* [Mathematical Model](#mathematical-model)
+
+  * [Newtonian Orbital Dynamics](#newtonian-orbital-dynamics)
+  * [Keplerian Analytical Solution](#keplerian-analytical-solution)
+  * [Relativistic Correction](#relativistic-correction)
+  * [Circular Orbits, Stability, and the ISCO](#circular-orbits-stability-and-the-isco)
+  * [Relativistic Precession](#relativistic-precession)
+* [Numerical Methods](#numerical-methods)
+
+  * [Euler's Method](#eulers-method)
+  * [Fourth-Order Runge-Kutta](#fourth-order-runge-kutta)
+  * [Velocity Verlet](#velocity-verlet)
+  * [Convergence and Energy Conservation](#convergence-and-energy-conservation)
 * [Results](#results)
+
+  * [1. Numerical Convergence](#1-numerical-convergence)
+  * [2. Long-Term Energy Conservation](#2-long-term-energy-conservation)
+  * [3. Relativistic Orbital Dynamics](#3-relativistic-orbital-dynamics)
+  * [4. Relativistic Precession Coefficients](#4-relativistic-precession-coefficients)
+  * [5. Critical Perturbation Near the ISCO](#5-critical-perturbation-near-the-isco)
 * [Key Findings](#key-findings)
 * [Future Improvements](#future-improvements)
 * [Conclusion](#conclusion)
@@ -30,7 +48,7 @@ Next, I add a relativistic correction to study periapsis precession. I measure t
 
 Finally, I investigate circular orbits near the ISCO. I apply small radial perturbations and increase their size until the orbit becomes unstable. This gives a numerical estimate of the stability boundary that can be compared with the analytical prediction.
 
-## Mathematical Model and Numerical Methods
+## Mathematical Model
 
 The simulations use normalized units with $GM=c=1$, with the state vector
 
@@ -38,10 +56,483 @@ $$
 \mathbf{s}=(x,y,v_x,v_y).
 $$
 
-The Newtonian and relativistic equations of motion are integrated using Euler's Method, RK4, and Velocity Verlet. The underlying equations and numerical methods are introduced in:
+and
 
-- [Mathematical Model](docs/mathematical_model.md)
-- [Numerical Methods](docs/numerical_methods.md)
+$$
+r=\sqrt{x^2+y^2}.
+$$
+
+### Newtonian Orbital Dynamics
+
+For Newtonian gravity,
+
+$$
+\mathbf a=-\frac{\mathbf r}{r^3},
+$$
+
+or
+
+$$
+\ddot{x}=-\frac{x}{r^3},
+\qquad
+\ddot{y}=-\frac{y}{r^3}.
+$$
+
+The specific energy and angular momentum are
+
+$$
+E=\frac{v^2}{2}-\frac1r,
+\qquad
+L_z=xv_y-yv_x.
+$$
+
+For bound orbits, the semimajor axis and eccentricity are
+
+$$
+a=-\frac{1}{2E},
+\qquad
+e=\sqrt{1+2EL_z^2}.
+$$
+
+I use these quantities to construct the analytical Keplerian reference solution.
+
+### Keplerian Analytical Solution
+
+The Newtonian orbit can be written using the eccentric anomaly $E_{\rm anom}$, which satisfies Kepler's equation
+
+$$
+E_{\rm anom}-e\sin E_{\rm anom}=nt+C,
+$$
+
+where $C$ contains the initial conditions and
+
+$$
+n=\sqrt{\frac{1}{a^3}}.
+$$
+
+The position is then
+
+$$
+x=a(e-\cos E_{\rm anom}),
+$$
+
+$$
+y=-a\sqrt{1-e^2}\sin E_{\rm anom}.
+$$
+
+I solve Kepler's equation numerically with `fsolve`. This gives an independent reference solution that I can use to test the numerical integrators.
+
+### Relativistic Correction
+
+I add the Schwarzschild correction to the Newtonian acceleration:
+
+$$
+\mathbf a=
+-\frac{\mathbf r}{r^3}
+-\frac{3L^2\mathbf r}{r^5}.
+$$
+
+A Binet equation is a useful way to describe the shape of an orbit under a central force. It relates the orbit $u=1/r$ to the radial acceleration:
+
+$$
+u''+u=-\frac{F(u)}{L^2u^2}.
+$$
+
+For the relativistic acceleration,
+
+$$
+F(r)=-\frac{1}{r^2}-\frac{3L^2}{r^4}.
+$$
+
+Using $u=1/r$,
+
+$$
+F(u)=-u^2-3L^2u^4.
+$$
+
+Substituting into the Binet equation,
+
+$$
+u''+u
+=-\frac{-u^2-3L^2u^4}{L^2u^2}
+=\frac{1}{L^2}+3u^2.
+$$
+
+Therefore, the relativistic Binet equation is
+
+$$
+\boxed{u''+u=\frac{1}{L^2}+3u^2}.
+$$
+
+The nonlinear $3u^2$ term is responsible for the relativistic effects studied later in the project.
+
+### Circular Orbits, Stability, and the ISCO
+
+For a circular orbit, $u=u_0$ and $u''=0$, giving
+
+$$
+3u_0^2-u_0+\frac1{L^2}=0.
+$$
+
+The stable circular-orbit branch is
+
+$$
+u_0=
+\frac{1-\sqrt{1-12/L^2}}{6}.
+$$
+
+To study its stability, I introduce a small radial perturbation,
+
+$$
+u=u_0+\delta u.
+$$
+
+Keeping only first-order terms gives
+
+$$
+\delta u''+(1-6u_0)\delta u=0,
+$$
+
+so the radial frequency is
+
+$$
+\omega_r^2=1-6u_0
+=1-\frac6{r_c}.
+$$
+
+When $\omega_r^2>0$,
+
+$$
+\delta u\propto\cos(\omega_r\phi),
+$$
+
+so the perturbation remains bounded and the orbit is stable.
+
+When $\omega_r^2<0$, the frequency is imaginary and
+
+$$
+\delta u\propto e^{\pm\gamma\phi},
+$$
+
+so the perturbation grows and the orbit is unstable.
+
+At $\omega_r=0$, the radial restoring force vanishes, giving marginal stability.
+
+Therefore,
+
+$$
+r_c>6\Rightarrow\text{stable},
+\qquad
+r_c=6\Rightarrow\text{marginally stable},
+\qquad
+r_c<6\Rightarrow\text{unstable}.
+$$
+
+This gives the analytical ISCO radius
+
+$$
+\boxed{r_{\rm ISCO}=6}.
+$$
+
+To initialize the circular orbits used in the simulations, I write the circularity condition in terms of the tangential velocity. The required centripetal acceleration satisfies
+
+$$
+\frac{V_t^2}{r}
+=\frac1{r^2}+\frac{3L^2}{r^4}.
+$$
+
+Using $L=rV_t$ gives
+
+$$
+V_t^2r=1+3V_t^2,
+$$
+
+so
+
+$$
+\boxed{
+r_c=\frac1{V_t^2}+3
+}.
+$$
+
+The corresponding initial state is
+
+$$
+(x_0,y_0,v_{x0},v_{y0})
+=(r_c,0,0,V_t).
+$$
+
+I then test the stability of these orbits by applying small radial perturbations,
+
+$$
+r_0\rightarrow r_0(1\pm\epsilon),
+$$
+
+and measuring the resulting radial deviation.
+
+### Relativistic Precession
+
+The Binet equation
+
+$$
+u''+u=\frac1{L^2}+3u^2
+$$
+
+is nonlinear because of the $3u^2$ term. In the weak-field limit, $u=1/r$ is small, so the relativistic correction is also small. This makes it possible to treat the relativistic effect as a perturbation of the Newtonian orbit.
+
+I expand the precession in powers of the small parameter $1/L^2$:
+
+$$
+\frac{c_1}{L^2}
++
+\frac{c_2}{L^4}
++
+\mathcal O(L^{-6}),
+$$
+
+where $c_1$ is the leading-order coefficient and $c_2$ is the next-to-leading-order coefficient.
+
+For a circular orbit, the radial frequency is
+
+$$
+\omega_r^2=1-6u_0,
+$$
+
+so one complete radial cycle requires
+
+$$
+\Phi=\frac{2\pi}{\omega_r}
+=\frac{2\pi}{\sqrt{1-6u_0}}.
+$$
+
+In the Newtonian case, the radial cycle closes after one revolution, so $\Phi=2\pi$. The relativistic periapsis advance is therefore
+
+$$
+\Delta\phi=
+\Phi-2\pi=
+2\pi
+\left[
+\frac{1}{\sqrt{1-6u_0}}-1
+\right].
+$$
+
+From the circular-orbit equation,
+
+$$
+u_0=
+\frac{1-\sqrt{1-12/L^2}}{6},
+$$
+
+so
+
+$$
+1-6u_0=
+\sqrt{1-\frac{12}{L^2}}.
+$$
+
+Therefore,
+
+$$
+\Delta\phi=
+2\pi
+\left[
+\left(1-\frac{12}{L^2}\right)^{-1/4}
+-1
+\right].
+$$
+
+For $1/L^2\ll1$, this can be expanded as
+
+$$
+(1-x)^{-1/4}=
+1+\frac{x}{4}
++\frac{5x^2}{32}
++\cdots,
+$$
+
+with $x=12/L^2$. This gives
+
+$$
+\Delta\phi=
+2\pi
+\left[
+\frac{3}{L^2}
++
+\frac{45}{2L^4}
++\cdots
+\right],
+$$
+
+and therefore
+
+$$
+\boxed{
+\Delta\phi=
+\frac{6\pi}{L^2}
++
+\frac{45\pi}{L^4}
++\mathcal O(L^{-6})
+}.
+$$
+
+This gives me a way to test the numerical results. I can extract the coefficients of the $1/L^2$ and $1/L^4$ terms from the simulations and compare them with the theoretical values.
+
+Numerically, I identify periapsides when
+
+$$
+v_r=\frac{\mathbf r\cdot\mathbf v}{r}
+$$
+
+crosses from negative to positive. The angular separation between successive periapsides gives the measured precession, which I then fit against $1/L^2$.
+
+## Numerical Methods
+
+I compare three numerical integrators: Euler's Method, fourth-order Runge-Kutta (RK4), and Velocity Verlet.
+
+### Euler's Method
+
+Euler's Method was derived in my previous project, where I also tested its convergence. It advances the state using the derivative at the current timestep:
+
+$$
+\mathbf s_{n+1}
+=\mathbf s_n+
+\mathbf f(\mathbf s_n,t_n)h.
+$$
+
+It has global error
+
+$$
+O(h).
+$$
+
+Here, I use Euler's Method mainly as a baseline for comparison.
+
+### Fourth-Order Runge-Kutta
+
+RK4 improves on Euler's Method by evaluating the derivative at four points within each timestep. For
+
+$$
+\frac{d\mathbf s}{dt}
+=\mathbf f(\mathbf s,t),
+$$
+
+the four derivative estimates are
+
+$$
+k_1
+=\mathbf f(\mathbf s_n,t_n),
+$$
+
+$$
+k_2
+=\mathbf f
+\left(
+\mathbf s_n+\frac{h}{2}k_1,
+t_n+\frac{h}{2}
+\right),
+$$
+
+$$
+k_3
+=\mathbf f
+\left(
+\mathbf s_n+\frac{h}{2}k_2,
+t_n+\frac{h}{2}
+\right),
+$$
+
+$$
+k_4
+=\mathbf f
+\left(
+\mathbf s_n+hk_3,
+t_n+h
+\right).
+$$
+
+These are combined to produce the next state:
+
+$$
+\mathbf s_{n+1}
+=\mathbf s_n+
+\frac{h}{6}
+(k_1+2k_2+2k_3+k_4).
+$$
+
+RK4 has global error
+
+$$
+O(h^4).
+$$
+
+### Velocity Verlet
+
+Velocity Verlet is useful for systems where the acceleration depends on position. It first updates the position using the current velocity and acceleration:
+
+$$
+\mathbf r_{n+1}
+=\mathbf r_n+
+\mathbf v_nh+
+\frac12\mathbf a_nh^2.
+$$
+
+The acceleration is then recalculated from the new position:
+
+$$
+\mathbf a_{n+1}
+=\mathbf a(\mathbf r_{n+1}),
+$$
+
+and the velocity is updated using the average of the two accelerations:
+
+$$
+\mathbf v_{n+1}
+=\mathbf v_n+
+\frac12
+(\mathbf a_n+\mathbf a_{n+1})h.
+$$
+
+Velocity Verlet has global error
+
+$$
+O(h^2),
+$$
+
+and its time-symmetric structure gives it good long-term energy behavior for conservative systems.
+
+### Convergence and Energy Conservation
+
+I test numerical convergence by comparing the numerical position with the Keplerian reference solution using the relative position error:
+
+$$
+\epsilon_r=
+\frac{
+\left|
+\mathbf r_{\rm numerical}-
+\mathbf r_{\rm exact}
+\right|
+}{
+\left|
+\mathbf r_{\rm exact}
+\right|
+}.
+$$
+
+The expected scaling is
+
+$$
+\epsilon_r\propto h^p,
+$$
+
+where $p$ is the order of the method.
+
+For long-term behavior, I track the relative energy error:
+
+$$
+\frac{E(t)-E(0)}{|E(0)|}\times100\%.
+$$
+
+This lets me compare the short-term accuracy of the methods with how well they conserve energy over longer simulations.
 
 ## Results
 
@@ -224,13 +715,16 @@ Overall, the project combines numerical methods with orbital mechanics and relat
 
 ```text
 Orbital-Dynamics-and-Relativistic-Precession/
-├── docs/
-├── images/
-├── analysis.py
 ├── main.py
 ├── physics.py
-├── requirements.txt
 ├── solvers.py
+├── analysis.py
+├── numerical_convergence.png
+├── energy_conservation.png
+├── relativistic_orbits.png
+├── relativistic_precession.png
+├── isco_critical_perturbation.png
+├── requirements.txt
 └── README.md
 ```
 
