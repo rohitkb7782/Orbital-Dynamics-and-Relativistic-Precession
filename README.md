@@ -666,7 +666,7 @@ gives much better agreement across the plotted range. It also captures the upwar
 
 **Figure 6.** *Critical fractional radial perturbation required to produce a greater than 10% radial deviation for circular orbits near the ISCO.*
 
-I next look at the stability boundary near the theoretical ISCO at $r_c=6$. I use a $10%$ relative radial deviation as the numerical stability criterion. This threshold is arbitrary and is only used to define a consistent numerical measure of when the perturbation has become large.
+I next look at the stability boundary near the theoretical ISCO at $r_c=6$. I use a 10% relative radial deviation as the numerical stability criterion. This threshold is arbitrary and is only used to define a consistent numerical measure of when the perturbation has become large.
 
 The critical perturbation $\epsilon_{\rm crit}$ is the largest inward fractional perturbation that stays below this threshold.
 
