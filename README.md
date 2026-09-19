@@ -629,7 +629,7 @@ $$
 
 and remain consistent across the tested eccentricities, $\epsilon=0.01$ to $0.10$.
 
-The extraction of $c_2$ is more sensitive to higher-order terms because points farther from the weak-field limit contain larger $\mathcal O(L^{-6})$ contributions. Using fewer points closer to $x=0$ gives values that cluster around
+The extraction of $c_2$ is more sensitive to higher-order terms because points farther from the weak-field limit contain larger $\mathcal O(L^{-6})$ contributions, while a linear estimate with too few points suffers from numerical error. Using fewer points closer to $x=0$ gives values that cluster around
 
 $$
 c_2=45\pi\approx141.37.
